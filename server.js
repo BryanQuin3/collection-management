@@ -14,7 +14,7 @@ const seed = require('./seed/seed');
 const PORT = process.env.PORT ?? 8000 ;
 
 configMongoose();
-seed();
+// seed();
 app.use(cors('*'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
