@@ -40,6 +40,7 @@ module.exports.login = async (req, res) => {
     return res.cookie("usertoken", userToken, { httpOnly: true }).status(200)
         .json({ message: "Logged ok",usertoken: userToken});
     } catch (error) {
+        console.log("Error in login " + error);
         return res.status(500).json({ message: "Server error" });
     }
 }
