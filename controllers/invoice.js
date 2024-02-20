@@ -121,10 +121,12 @@ module.exports.getInvoiceStatusByCustomer = async (req, res) => {
                 }
             },
             {
-                $unwind: "$customerData" // Deshacer el arreglo de resultados de la etapa $lookup
+                $unwind: {
+                    path: "$customerData",
+                    preserveNullAndEmptyArrays: true // Mantener documentos sin facturas
+                }
             },
             {
-                // Filtrar por nombre del cliente solo si se proporciona una consulta
                 $match: query ? { "customerData.name": { $regex: query, $options: "i" } } : {}
             },
             {
@@ -133,9 +135,31 @@ module.exports.getInvoiceStatusByCustomer = async (req, res) => {
                     name: { $first: "$customerData.name" },
                     email: { $first: "$customerData.email" },
                     image_url: { $first: "$customerData.image_url" },
-                    total_invoices: { $sum: 1 },
-                    total_paid: { $sum: { $cond: [{ $eq: ["$status", "paid"] }, "$amount", 0] } },
-                    total_pending: { $sum: { $cond: [{ $eq: ["$status", "pending"] }, "$amount", 0] } }
+                    total_invoices: { $sum: { $cond: [{ $eq: ["$customerData._id", null] }, 0, 1] } },
+                    total_paid: {
+                        $sum: {
+                            $cond: [{ $eq: ["$status", "paid"] }, "$amount", 0]
+                        }
+                    },
+                    total_pending: {
+                        $sum: {
+                            $cond: [{ $eq: ["$status", "pending"] }, "$amount", 0]
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    name: 1,
+                    email: 1,
+                    image_url: 1,
+                    total_invoices: 1,
+                    total_paid: {
+                        $ifNull: ["$total_paid", 0] // Manejar caso de no facturas
+                    },
+                    total_pending: {
+                        $ifNull: ["$total_pending", 0] // Manejar caso de no facturas
+                    }
                 }
             }
         ]);
@@ -149,6 +173,7 @@ module.exports.getInvoiceStatusByCustomer = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 module.exports.getInvoicesDetails = async (req, res) => {
     try {
