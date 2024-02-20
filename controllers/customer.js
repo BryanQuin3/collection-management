@@ -2,12 +2,7 @@ const Customer = require('../models/customer');
 
 module.exports.createCustomer = async (req, res) => {
     try {
-        const { name, email } = req.body;
-        const newCustomer = await Customer.create({
-            name,
-            email,
-            image_url: req.imagePath
-        });
+        const newCustomer = await Customer.create(req.body);
         return res.status(201).json(newCustomer);
     } catch (error) {
         return res.status(500).json(error);
