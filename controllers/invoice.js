@@ -111,39 +111,39 @@ module.exports.getInvoiceStatusByCustomer = async (req, res) => {
         const query = req.query.query; // Obtener el valor de la consulta de la solicitud
 
         // Consulta para obtener los datos de las facturas del cliente con la consulta específica
-        const invoiceStatus = await Invoice.aggregate([
+        const invoiceStatus = await Customer.aggregate([
             {
                 $lookup: {
-                    from: "customers", // Nombre de la colección de clientes
-                    localField: "customer_id",
-                    foreignField: "_id",
-                    as: "customerData"
+                    from: "invoices", // Nombre de la colección de facturas
+                    localField: "_id",
+                    foreignField: "customer_id",
+                    as: "invoices"
                 }
             },
             {
                 $unwind: {
-                    path: "$customerData",
+                    path: "$invoices",
                     preserveNullAndEmptyArrays: true // Mantener documentos sin facturas
                 }
             },
             {
-                $match: query ? { "customerData.name": { $regex: query, $options: "i" } } : {}
+                $match: query ? { "name": { $regex: query, $options: "i" } } : {}
             },
             {
                 $group: {
-                    _id: "$customerData._id", // Usar el _id del cliente como _id en el resultado
-                    name: { $first: "$customerData.name" },
-                    email: { $first: "$customerData.email" },
-                    image_url: { $first: "$customerData.image_url" },
-                    total_invoices: { $sum: { $cond: [{ $eq: ["$customerData._id", null] }, 0, 1] } },
+                    _id: "$_id",
+                    name: { $first: "$name" },
+                    email: { $first: "$email" },
+                    image_url: { $first: "$image_url" },
+                    total_invoices: { $sum: { $cond: [{ $eq: ["$invoices", null] }, 0, 1] } },
                     total_paid: {
                         $sum: {
-                            $cond: [{ $eq: ["$status", "paid"] }, "$amount", 0]
+                            $cond: [{ $eq: ["$invoices.status", "paid"] }, "$invoices.amount", 0]
                         }
                     },
                     total_pending: {
                         $sum: {
-                            $cond: [{ $eq: ["$status", "pending"] }, "$amount", 0]
+                            $cond: [{ $eq: ["$invoices.status", "pending"] }, "$invoices.amount", 0]
                         }
                     }
                 }
@@ -154,21 +154,14 @@ module.exports.getInvoiceStatusByCustomer = async (req, res) => {
                     email: 1,
                     image_url: 1,
                     total_invoices: 1,
-                    total_paid: {
-                        $ifNull: ["$total_paid", 0] // Manejar caso de no facturas
-                    },
-                    total_pending: {
-                        $ifNull: ["$total_pending", 0] // Manejar caso de no facturas
-                    }
+                    total_paid: 1,
+                    total_pending: 1
                 }
             }
         ]);
 
-        if (invoiceStatus.length === 0) {
-            throw new Error("There are no invoices for any customer matching the query.");
-        } else {
-            res.status(200).json(invoiceStatus);
-        }
+        res.status(200).json(invoiceStatus);
+        
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
