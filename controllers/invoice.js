@@ -135,7 +135,7 @@ module.exports.getInvoiceStatusByCustomer = async (req, res) => {
                     name: { $first: "$name" },
                     email: { $first: "$email" },
                     image_url: { $first: "$image_url" },
-                    total_invoices: { $sum: { $cond: [{ $eq: ["$invoices", null] }, 0, 1] } },
+                    total_invoices: { $sum: { $cond: [{ $eq: [{ $ifNull: ["$invoices", null] }, null] }, 0, 1] } }, // Ajuste aquí
                     total_paid: {
                         $sum: {
                             $cond: [{ $eq: ["$invoices.status", "paid"] }, "$invoices.amount", 0]
@@ -166,6 +166,7 @@ module.exports.getInvoiceStatusByCustomer = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 
 module.exports.getInvoicesDetails = async (req, res) => {
