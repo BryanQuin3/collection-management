@@ -12,6 +12,7 @@ module.exports.createCustomer = async (req, res) => {
 module.exports.getAllCustomers = async (req, res) => {
     try {
         const allCustomers = await Customer.find({});
+        console.log(allCustomers)
         return res.status(200).json(allCustomers);
     } catch (error) {
         return res.status(500).json(error);
