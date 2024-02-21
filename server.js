@@ -15,7 +15,7 @@ const PORT = process.env.PORT ?? 8000 ;
 
 configMongoose();
 // seed();
-const whitelist = ['http://localhost:3000', 'https://collectionx.vercel.app'];
+const whitelist = ['http://localhost:3000'];
 app.use(cors({
     origin: function (origin, callback) {
         if (whitelist.indexOf(origin) !== -1 || !origin) {
