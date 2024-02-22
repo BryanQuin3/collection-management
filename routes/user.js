@@ -6,5 +6,5 @@ module.exports = (app) => {
     app.get('/user/cookie', UserController.cookie);
     app.get('/user/logout', UserController.logout);
     app.get('/user', UserController.getAllUsers);
-    app.get('/user/check-auth', UserController.checkAuth);
+    app.post('/user/check-auth', UserController.checkAuth);
 }
