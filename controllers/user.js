@@ -40,12 +40,13 @@ module.exports.login = async (req, res) => {
     if (!correctPassword) {
         return res.sendStatus(400).json({ message: "Invalid credentials" });
     }
+    const ONE_HOUR = 3600000;
+    const expirationTime = new Date(Date.now() + ONE_HOUR);
+    const expirationTimeInSeconds = Math.floor((expirationTime.getTime() - Date.now()) / 1000);
     const userToken = jwt.sign({
         id: user._id
-    }, secretKey, { expiresIn: "30d" });
-     // Obtener la fecha de expiración del token
-     const ONE_MONTH = 30 * 24 * 60 * 60 * 1000;
-     const expirationTime = new Date(Date.now() + ONE_MONTH);
+    }, secretKey, { expiresIn: expirationTimeInSeconds });
+
      return res.cookie("usertoken", userToken, { 
          httpOnly: true, 
          expires: expirationTime
