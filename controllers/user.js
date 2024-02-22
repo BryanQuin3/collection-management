@@ -6,7 +6,10 @@ const secretKey = process.env.JWT_SECRET_KEY;
 
 module.exports.createUser = async (req, res) => {
     try {
-        console.log(req.body);
+        const userExists = await User.findOne({ email : req.body.email });
+        if (userExists) {
+            return res.status(400).json({ message: "User already exists" });
+        }
         const newUser = await User.create(req.body);
         res.status(200).json(newUser);
     } catch (error) {
