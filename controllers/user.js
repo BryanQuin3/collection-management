@@ -37,8 +37,17 @@ module.exports.login = async (req, res) => {
     const userToken = jwt.sign({
         id: user._id
     }, secretKey, { expiresIn: "1h" });
-    return res.cookie("usertoken", userToken, { httpOnly: true }).status(200)
-        .json({ message: "Logged ok",usertoken: userToken});
+     // Obtener la fecha de expiración del token
+     const ONE_HOUR = 3600000;
+     const expirationTime = new Date(Date.now() + ONE_HOUR);
+     return res.cookie("usertoken", userToken, { 
+         httpOnly: true, 
+         expires: expirationTime
+     }).status(200).json({ 
+         message: "Logged ok",
+         usertoken: userToken,
+         expirationTime: expirationTime.getTime()
+     });
     } catch (error) {
         console.log(`Error: ${error}`);
         return res.status(500).json({ message: "Server error" });
