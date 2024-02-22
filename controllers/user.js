@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
 
-const secretKey = process.env.JWT_SECRET_KEY;
+const secretKey = process.env.JWT_SECRET_KEY ;
 
 module.exports.createUser = async (req, res) => {
     try {
@@ -42,10 +42,10 @@ module.exports.login = async (req, res) => {
     }
     const userToken = jwt.sign({
         id: user._id
-    }, secretKey, { expiresIn: "1h" });
+    }, secretKey, { expiresIn: "30d" });
      // Obtener la fecha de expiración del token
-     const ONE_HOUR = 3600000;
-     const expirationTime = new Date(Date.now() + ONE_HOUR);
+     const ONE_MONTH = 30 * 24 * 60 * 60 * 1000;
+     const expirationTime = new Date(Date.now() + ONE_MONTH);
      return res.cookie("usertoken", userToken, { 
          httpOnly: true, 
          expires: expirationTime
@@ -81,12 +81,14 @@ module.exports.logout = async (req, res) => {
 module.exports.checkAuth = async (req, res) => {
     try {
         const decoded = jwt.verify(req.cookies.usertoken, secretKey);
+        console.log(decoded);
         const user = await User.findById(decoded.id);
         if (user) {
             return res.status(200).json({ message: "Valid token",valid : true});
         }
         return res.status(401).json({ message: "User not found", valid: false});
     } catch (error) {
-        return res.status(401).json({ message: "Unauthorized" , valid: false});
+        console.log(`Error: ${error.message}`);
+        return res.status(401).json({ message: error.message , valid: false});
     }
 }
