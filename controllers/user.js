@@ -80,15 +80,13 @@ module.exports.logout = async (req, res) => {
 
 module.exports.checkAuth = async (req, res) => {
     try {
-        console.log("Checking auth");
-        console.log(req.cookies.usertoken);
         const decoded = jwt.verify(req.cookies.usertoken, secretKey);
         const user = await User.findById(decoded.id);
         if (user) {
-            return res.status(200).json({ message: "Valid token" });
+            return res.status(200).json({ message: "Valid token",valid : true});
         }
-        return res.status(401).json({ message: "User not found" });
+        return res.status(401).json({ message: "User not found", valid: false});
     } catch (error) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ message: "Unauthorized" , valid: false});
     }
 }
