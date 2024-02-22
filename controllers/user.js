@@ -82,14 +82,12 @@ module.exports.logout = async (req, res) => {
 module.exports.checkAuth = async (req, res) => {
     try {
         const decoded = jwt.verify(req.cookies.usertoken, secretKey);
-        console.log(decoded);
         const user = await User.findById(decoded.id);
         if (user) {
             return res.status(200).json({ message: "Valid token",valid : true});
         }
         return res.status(401).json({ message: "User not found", valid: false});
     } catch (error) {
-        console.log(`Error: ${error.message}`);
         return res.status(401).json({ message: error.message , valid: false});
     }
 }
