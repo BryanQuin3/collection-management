@@ -180,7 +180,7 @@ module.exports.getInvoicesDetails = async (req, res) => {
 
         const matchStage = query ? { "customerData.name": { $regex: query, $options: "i" } } : {};
 
-        const invoices = await Invoice.find().sort({date:-1}).aggregate([
+        const invoices = await Invoice.aggregate([
             {
                 $lookup: {
                     from: "customers",
