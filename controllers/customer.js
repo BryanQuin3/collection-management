@@ -2,6 +2,10 @@ const Customer = require('../models/customer');
 
 module.exports.createCustomer = async (req, res) => {
     try {
+        const customerExists = await Customer.findOne({ email : req.body.email });
+        if (customerExists) {
+            return res.status(400).json({ message: "Customer already exists" });
+        }
         const newCustomer = await Customer.create(req.body);
         return res.status(201).json(newCustomer);
     } catch (error) {
