@@ -169,7 +169,7 @@ module.exports.getInvoiceStatusByCustomer = async (req, res) => {
 
 
 
-module.exports.getInvoicesDetails = async (req, res) => {
+/*module.exports.getInvoicesDetails = async (req, res) => {
     try {
         const query = req.query.query;
         const currentPage = parseInt(req.query.page) || 1;
@@ -189,21 +189,10 @@ module.exports.getInvoicesDetails = async (req, res) => {
                     as: "customerData"
                 }
             },
-            {
-                $unwind: "$customerData"
-            },
-            {
-                $match: matchStage
-            },
-            {
-                $sort: { date: -1 }
-            },
-            {
-                $skip: offset
-            },
-            {
-                $limit: ITEMS_PER_PAGE
-            },
+            { $unwind: "$customerData" },
+            { $match: matchStage },
+            { $skip: offset },
+            { $limit: ITEMS_PER_PAGE },
             {
                 $group: {
                     _id: "$_id",
@@ -219,6 +208,58 @@ module.exports.getInvoicesDetails = async (req, res) => {
         ]);
 
         res.status(200).json(invoices);
+    } catch (error) {
+        res.status(500).json(error);
+    }
+}*/
+
+// Función para buscar y ordenar las facturas
+async function findAndSortInvoices(query, currentPage, ITEMS_PER_PAGE) {
+    const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+    const matchStage = query ? { "customerData.name": { $regex: query, $options: "i" } } : {};
+
+    const sortedInvoices = await Invoice.find(matchStage)
+                                        .sort({ date: -1 }) // Ordenar por fecha en orden descendente (-1)
+                                        .skip(offset)
+                                        .limit(ITEMS_PER_PAGE)
+                                        .populate('customer_id');
+
+    return sortedInvoices;
+}
+
+// Función para agrupar las facturas
+function groupInvoices(invoices) {
+    const groupedInvoices = invoices.reduce((acc, invoice) => {
+        if (!acc[invoice._id]) {
+            acc[invoice._id] = {
+                _id: invoice._id,
+                customer_id: invoice.customer_id,
+                name: invoice.customerData.name,
+                email: invoice.customerData.email,
+                image_url: invoice.customerData.image_url,
+                amount: invoice.amount,
+                status: invoice.status,
+                date: invoice.date
+            };
+        }
+        return acc;
+    }, {});
+
+    return Object.values(groupedInvoices);
+}
+
+module.exports.getInvoicesDetails = async (req, res) => {
+    try {
+        const query = req.query.query;
+        const currentPage = parseInt(req.query.page) || 1;
+        const ITEMS_PER_PAGE = 6;
+
+        const sortedInvoices = await findAndSortInvoices(query, currentPage, ITEMS_PER_PAGE);
+
+        const groupedInvoices = groupInvoices(sortedInvoices);
+
+        res.status(200).json(groupedInvoices);
     } catch (error) {
         res.status(500).json(error);
     }
