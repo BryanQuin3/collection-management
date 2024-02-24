@@ -196,6 +196,9 @@ module.exports.getInvoicesDetails = async (req, res) => {
                 $match: matchStage
             },
             {
+                $sort: { date: -1 }
+            },
+            {
                 $skip: offset
             },
             {
