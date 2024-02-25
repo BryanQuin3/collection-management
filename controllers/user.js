@@ -53,11 +53,11 @@ module.exports.login = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email: email });
     if (user === null) {
-        return res.sendStatus(404).json({ message: "User not found" });
+        return res.status(404).json({ message: "User not found" });
     }
     const correctPassword = await bcrypt.compare(password, user.password);
     if (!correctPassword) {
-        return res.sendStatus(400).json({ message: "Invalid credentials" });
+        return res.status(400).json({ message: "Invalid credentials" });
     }
     const { userToken, expirationTime } = generateToken(user);
 
