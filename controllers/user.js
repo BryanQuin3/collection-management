@@ -25,7 +25,7 @@ module.exports.createUser = async (req, res) => {
         expires: expirationTime
     }).status(200).json({ 
         message: "User created", 
-        userToken: userToken, 
+        usertoken: userToken, 
         expirationTime: expirationTime.getTime() 
     });
     } catch (error) {
