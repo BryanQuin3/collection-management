@@ -14,7 +14,20 @@ module.exports.createUser = async (req, res) => {
             return res.status(400).json({ message: "Passwords do not match" });
         }
         const newUser = await User.create(req.body);
-        res.status(200).json(newUser);
+        const ONE_HOUR = 3600000;
+        const expirationTime = new Date(Date.now() + ONE_HOUR);
+        const expirationTimeInSeconds = Math.floor((expirationTime.getTime() - Date.now()) / 1000);
+        const userToken = jwt.sign({
+        id: newUser._id
+    }, secretKey, { expiresIn: expirationTimeInSeconds });
+    return res.cookie("usertoken", userToken, {
+        httpOnly: true,
+        expires: expirationTime
+    }).status(200).json({ 
+        message: "User created", 
+        userToken: userToken, 
+        expirationTime: expirationTime.getTime() 
+    });
     } catch (error) {
         res.status(500).json({ message: "Server error" });
     }
