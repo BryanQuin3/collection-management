@@ -4,6 +4,16 @@ const User = require('../models/user');
 
 const secretKey = process.env.JWT_SECRET_KEY ;
 
+function generateToken (user) {
+    const ONE_HOUR = 3600000;
+    const expirationTime = new Date(Date.now() + ONE_HOUR);
+    const expirationTimeInSeconds = Math.floor((expirationTime.getTime() - Date.now()) / 1000);
+    const userToken = jwt.sign({
+        id: user._id
+    }, secretKey, { expiresIn: expirationTimeInSeconds });
+    return { userToken, expirationTime };
+}
+
 module.exports.createUser = async (req, res) => {
     try {
         const userExists = await User.findOne({ email : req.body.email });
@@ -14,20 +24,16 @@ module.exports.createUser = async (req, res) => {
             return res.status(400).json({ message: "Passwords do not match" });
         }
         const newUser = await User.create(req.body);
-        const ONE_HOUR = 3600000;
-        const expirationTime = new Date(Date.now() + ONE_HOUR);
-        const expirationTimeInSeconds = Math.floor((expirationTime.getTime() - Date.now()) / 1000);
-        const userToken = jwt.sign({
-        id: newUser._id
-    }, secretKey, { expiresIn: expirationTimeInSeconds });
-    return res.cookie("usertoken", userToken, {
-        httpOnly: true,
-        expires: expirationTime
-    }).status(200).json({ 
-        message: "User created", 
-        usertoken: userToken, 
-        expirationTime: expirationTime.getTime() 
-    });
+        const { userToken, expirationTime } = generateToken(newUser);
+        
+        return res.cookie("usertoken", userToken, {
+            httpOnly: true,
+            expires: expirationTime
+        }).status(200).json({ 
+            message: "User created", 
+            usertoken: userToken, 
+            expirationTime: expirationTime.getTime() 
+        });
     } catch (error) {
         res.status(500).json({ message: "Server error" });
     }
@@ -53,12 +59,7 @@ module.exports.login = async (req, res) => {
     if (!correctPassword) {
         return res.sendStatus(400).json({ message: "Invalid credentials" });
     }
-    const ONE_HOUR = 3600000;
-    const expirationTime = new Date(Date.now() + ONE_HOUR);
-    const expirationTimeInSeconds = Math.floor((expirationTime.getTime() - Date.now()) / 1000);
-    const userToken = jwt.sign({
-        id: user._id
-    }, secretKey, { expiresIn: expirationTimeInSeconds });
+    const { userToken, expirationTime } = generateToken(user);
 
      return res.cookie("usertoken", userToken, { 
          httpOnly: true, 
