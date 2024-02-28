@@ -171,51 +171,20 @@ module.exports.getInvoiceStatusByCustomer = async (req, res) => {
 
 module.exports.getInvoicesDetails = async (req, res) => {
     try {
-        const query = req.query.query;
+        const {query} = req.query;
         const currentPage = parseInt(req.query.page) || 1;
-
         // Calcular el desplazamiento en función de la página actual
         const ITEMS_PER_PAGE = 6;
         const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+        if(!query){
+            const invoices =  await Invoice.find({}).sort({ date: -1 }).skip(offset).limit(ITEMS_PER_PAGE);
+            return res.status(200).json(invoices);
+        }
+        const customer = await Customer.findOne({ name: { $regex: query, $options: "i" } });
+        if(!customer) return res.json([]);
+        const invoices =  await Invoice.find({customer_id : customer._id}).sort({ date: -1 }).skip(offset).limit(ITEMS_PER_PAGE);
+        return res.status(200).json(invoices);
 
-        const matchStage = query ? { "customerData.name": { $regex: query, $options: "i" } } : {};
-
-        const invoices = await Invoice.aggregate([
-            {
-                $lookup: {
-                    from: "customers",
-                    localField: "customer_id",
-                    foreignField: "_id",
-                    as: "customerData"
-                }
-            },
-            {
-                $unwind: "$customerData"
-            },
-            {
-                $match: matchStage
-            },
-            {
-                $skip: offset
-            },
-            {
-                $limit: ITEMS_PER_PAGE
-            },
-            {
-                $group: {
-                    _id: "$_id",
-                    customer_id: { $first: "$customer_id" },
-                    name: { $first: "$customerData.name" },
-                    email: { $first: "$customerData.email" },
-                    image_url: { $first: "$customerData.image_url" },
-                    amount: { $first: "$amount" },
-                    status: { $first: "$status" },
-                    date: { $first: "$date" }
-                }
-            }
-        ]);
-
-        res.status(200).json(invoices);
     } catch (error) {
         res.status(500).json(error);
     }

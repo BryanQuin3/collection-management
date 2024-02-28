@@ -4,7 +4,8 @@ const InvoiceSchema = new mongoose.Schema({
     customer_id:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Customer",
-        required: [true, "Customer is required"]
+        required: [true, "Customer is required"],
+        autopopulate: true
     },
     amount : {
         type: Number,
@@ -21,5 +22,6 @@ const InvoiceSchema = new mongoose.Schema({
     },
 },{timestamps:true});
 
+InvoiceSchema.plugin(require('mongoose-autopopulate'));
 const Invoice = mongoose.model("Invoice",InvoiceSchema);
 module.exports = Invoice;
