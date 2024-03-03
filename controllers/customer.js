@@ -9,7 +9,7 @@ module.exports.createCustomer = async (req, res) => {
         const newCustomer = await Customer.create(req.body);
         return res.status(201).json(newCustomer);
     } catch (error) {
-        return res.status(500).json(error);
+        return res.status(500).json({message: "Failed to create customer"});
     }
 }
 
