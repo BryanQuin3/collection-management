@@ -6,7 +6,13 @@ module.exports.createCustomer = async (req, res) => {
         if (customerExists) {
             return res.status(400).json({ message: "Customer already exists" });
         }
-        const newCustomer = await Customer.create(req.body);
+        let customer = new Customer({...req.body});
+        if(req.file){
+            const { filename } = req.file;
+            // ejecutar el método setImageUrl
+            customer.setImageUrl(filename);
+        }
+        const newCustomer = await customer.save();
         return res.status(201).json(newCustomer);
     } catch (error) {
         return res.status(500).json({message: "Failed to create customer"});

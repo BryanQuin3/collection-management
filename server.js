@@ -29,6 +29,7 @@ app.use(cors({
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
+app.use('/public', express.static(`${__dirname}/storage/images`));
 
 customerRoutes(app);
 invoiceRoutes(app);

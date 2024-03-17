@@ -15,10 +15,16 @@ const CustomerSchema = new mongoose.Schema({
     },
     image_url :{
         type : String,
-        required : [true,"Image is required"],
+        required : false,
     }
 },{timestamps:true});
 
+// Define el método setImageUrl en el modelo Customer
+CustomerSchema.methods.setImageUrl = function setImageUrl(filename){
+    const host = process.env.HOST || "http://localhost";
+    const port = process.env.PORT || 8000;
+    this.image_url = `${host}:${port}/public/${filename}`;
+}
 
 const Customer = mongoose.model("Customer",CustomerSchema);
 
