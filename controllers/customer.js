@@ -10,6 +10,7 @@ module.exports.createCustomer = async (req, res) => {
         if(req.file){
             const { filename } = req.file;
             // ejecutar el método setImageUrl
+            console.log('seteando imagen',filename);
             customer.setImageUrl(filename);
         }
         const newCustomer = await customer.save();
