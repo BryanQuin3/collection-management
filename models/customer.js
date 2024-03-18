@@ -23,7 +23,8 @@ const CustomerSchema = new mongoose.Schema({
 CustomerSchema.methods.setImageUrl = function setImageUrl(filename){
     const host = process.env.HOST || "http://localhost";
     const port = process.env.PORT || 8000;
-    this.image_url = `${host}:${port}/public/${filename}`;
+    const baseUrl = host === "http://localhost" ? `${host}:${port}` : host;
+    this.image_url = `${baseUrl}/public/${filename}`;
 }
 
 const Customer = mongoose.model("Customer",CustomerSchema);
