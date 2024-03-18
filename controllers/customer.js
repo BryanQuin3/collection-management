@@ -12,7 +12,7 @@ module.exports.createCustomer = async (req, res) => {
             customer.setImageUrl(filename);
         }
         else{
-            customer.setImageUrl("default.png");
+            customer.image_url = 'https://img.freepik.com/free-vector/illustration-businessman_53876-5856.jpg?size=626&ext=jpg&ga=GA1.1.2082370165.1710633600&semt=ais'
         }
         const newCustomer = await customer.save();
         return res.status(201).json(newCustomer);
