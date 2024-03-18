@@ -7,7 +7,7 @@ module.exports.createCustomer = async (req, res) => {
             return res.status(400).json({ message: "Customer already exists" });
         }
         let customer = new Customer({...req.body});
-        if(req.file){
+        if(req.file && req.file.originalname){
             console.log(req.file);
             const { filename } = req.file;
             customer.setImageUrl(filename);
