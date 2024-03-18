@@ -8,7 +8,7 @@ module.exports.createCustomer = async (req, res) => {
         }
         let customer = new Customer({...req.body});
         if(req.file && req.file.originalname){
-            console.log(req.file);
+            console.log(!!req.file.originalname);
             const { filename } = req.file;
             customer.setImageUrl(filename);
         }
