@@ -9,6 +9,14 @@ module.exports.createCustomer = async (req, res) => {
         let customer = new Customer({...req.body});
         if(req.file && req.file.originalname !== 'undefined'){
             const { filename } = req.file;
+            // verificar si el archivo es una imagen .png, .jpg, .jpeg .avif o .webp
+            const ext = (path.extname(filename)).toLowerCase();
+            const filetypes = /png|jpg|jpeg|avif|webp/;
+            const mimetype = filetypes.test(req.file.mimetype);
+            const extname = filetypes.test(ext);
+            if (!mimetype && !extname) {
+                return res.status(400).json({ message: "File type not allowed" });
+            }
             customer.setImageUrl(filename);
         }
         else{
