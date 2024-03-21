@@ -1,38 +1,40 @@
 const multer = require("multer");
-const path = require("path");
 const sharp = require("sharp");
 const fs = require("fs");
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "./storage/images");
-    },
-    filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname);
-        cb(null, `${file.fieldname}-${Date.now()}${ext}`);
-    }
-});
+const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 
-// Middleware para redimensionar la imagen
+// Middleware para redimensionar la imagen antes de guardarla
 const resizeImage = async (req, res, next) => {
     if (!req.file) return next();
-    const originalFilePath = req.file.path;
-    const newFilePath = originalFilePath.replace(path.extname(originalFilePath), '-resized' + path.extname(originalFilePath));
+
     try {
-        await sharp(originalFilePath)
+        const resizedImageBuffer = await sharp(req.file.buffer)
             .resize(32, 32)
-            .toFile(newFilePath);
-        // Eliminar el archivo original después de redimensionarlo
-        fs.unlinkSync(originalFilePath);
-        // Establecer la ruta del archivo redimensionado en el objeto req
-        req.file.path = newFilePath;
+            .toBuffer();
+        req.file.buffer = resizedImageBuffer;
         next();
     } catch (error) {
-        console.log(error.message)
+        console.error("Error resizing the image:", error);
         return res.status(500).json({ error: "Error resizing the image" });
     }
 };
 
-module.exports = { upload, resizeImage };
+// Middleware para guardar la imagen redimensionada en la carpeta de destino
+const saveResizedImage = (req, res, next) => {
+    if (!req.file) return next();
+    const ext = req.file.originalname.split('.').pop();
+    const newFileName = `img-${Date.now()}.${ext}`;
+    req.file.path = `./storage/images/${newFileName}`;
+    fs.writeFile(req.file.path, req.file.buffer, err => {
+        if (err) {
+            console.error("Error saving the resized image:", err);
+            return res.status(500).json({ error: "Error saving the resized image" });
+        }
+        next();
+    });
+};
+
+module.exports = { upload, resizeImage, saveResizedImage };
